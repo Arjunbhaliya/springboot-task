@@ -18,7 +18,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final AuthenticationManager authManager;
 
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+    private final BCryptPasswordEncoder encoder;
 
     public Users register(Users user) {
         user.setPassword(encoder.encode(user.getPassword()));

@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -61,12 +62,12 @@ public class JsonFileService {
 
         String csvName = fileName.replace(".json", ".csv");
         Path outputPath = Paths.get("storage/output/" + csvName);
-
         try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
             writer.write(String.join(",", flatMap.keySet()));
             writer.newLine();
             writer.write(String.join(",", flatMap.values()));
         }
+
 
         JsonFile json = jsonFileRepository.findByFileName(fileName);
         if (json != null) {
@@ -78,17 +79,28 @@ public class JsonFileService {
     private void flattenJson(String prefix, JsonNode node, Map<String, String> result) {
         if (node.isObject()) {
             node.properties().forEach(entry -> {
-                String newPrefix = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
+                String newPrefix = prefix.isEmpty() ? entry.getKey() : prefix + "_" + entry.getKey();
                 flattenJson(newPrefix, entry.getValue(), result);
             });
         } else if (node.isArray()) {
+            if(node.isEmpty()){
+                result.put(prefix ,"");
+            }
             for (int i = 0; i < node.size(); i++) {
                 flattenJson(prefix + "[" + i + "]", node.get(i), result);
             }
+//            StringBuilder val = new StringBuilder();
+//            for (int i = 0; i < node.size(); i++) {
+//                if (i > 0) val.append(",");
+//                val.append(node.get(i).asText());
+//            }
+//            result.put(prefix,val.toString());
         } else {
+
             result.put(prefix, node.asText());
         }
     }
+
 
 
     public FileSystemResource download(String fileName) throws FileNotFoundException {
