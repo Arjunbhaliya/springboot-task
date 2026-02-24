@@ -1,0 +1,9 @@
+{
+  "id": 1,
+  "name": "Arjun",
+  "address": {
+    "street": "MG Road",
+    "city": "Ahmedabad",
+    "pincode": "380001"
+  }
+}

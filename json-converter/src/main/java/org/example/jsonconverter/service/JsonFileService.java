@@ -2,6 +2,7 @@ package org.example.jsonconverter.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.CSVWriter;
 import lombok.RequiredArgsConstructor;
 import org.example.jsonconverter.entity.JsonFile;
 import org.example.jsonconverter.repository.JsonFileRepository;
@@ -16,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -57,17 +57,26 @@ public class JsonFileService {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(inputPath.toFile());
 
+
         Map<String, String> flatMap = new LinkedHashMap<>();
         flattenJson("", root, flatMap);
 
         String csvName = fileName.replace(".json", ".csv");
         Path outputPath = Paths.get("storage/output/" + csvName);
-        try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
-            writer.write(String.join(",", flatMap.keySet()));
-            writer.newLine();
-            writer.write(String.join(",", flatMap.values()));
-        }
 
+//        try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
+//            writer.write(String.join(",", flatMap.keySet()));
+//            writer.newLine();
+//            writer.write(String.join(",", flatMap.values()));
+//        }
+
+        try (BufferedWriter writer = Files.newBufferedWriter(outputPath);
+             CSVWriter csvWriter = new CSVWriter(writer)) {
+            String[] headers = flatMap.keySet().toArray(new String[0]);
+            csvWriter.writeNext(headers);
+            String[] values = flatMap.values().stream().map(value -> value == null ? "" : value).toArray(String[]::new);
+            csvWriter.writeNext(values);
+        }
 
         JsonFile json = jsonFileRepository.findByFileName(fileName);
         if (json != null) {
@@ -77,14 +86,18 @@ public class JsonFileService {
     }
 
     private void flattenJson(String prefix, JsonNode node, Map<String, String> result) {
+        if (node.isEmpty()) {
+            result.put(prefix, "");
+        }
+
         if (node.isObject()) {
             node.properties().forEach(entry -> {
                 String newPrefix = prefix.isEmpty() ? entry.getKey() : prefix + "_" + entry.getKey();
                 flattenJson(newPrefix, entry.getValue(), result);
             });
         } else if (node.isArray()) {
-            if(node.isEmpty()){
-                result.put(prefix ,"");
+            if (node.isEmpty()) {
+                result.put(prefix, "");
             }
             for (int i = 0; i < node.size(); i++) {
                 flattenJson(prefix + "[" + i + "]", node.get(i), result);
@@ -100,7 +113,6 @@ public class JsonFileService {
             result.put(prefix, node.asText());
         }
     }
-
 
 
     public FileSystemResource download(String fileName) throws FileNotFoundException {

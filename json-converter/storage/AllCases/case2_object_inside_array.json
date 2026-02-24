@@ -1,0 +1,10 @@
+{
+  "orderId": 101,
+  "customer": "Arjun",
+  "items": [
+    {
+      "product": "Laptop",
+      "price": 75000
+    }
+  ]
+}

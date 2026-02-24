@@ -1,0 +1,14 @@
+{
+  "id": 1,
+  "name": "Arjun",
+  "skills": {
+    "technical": [
+      "Java",
+      "Python"
+    ],
+    "soft": [
+      "Communication",
+      "Leadership"
+    ]
+  }
+}
