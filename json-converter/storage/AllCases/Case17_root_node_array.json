@@ -1,0 +1,31 @@
+[{
+  "id": 101,
+  "name": "Arjun",
+  "email": "arjun@example.com",
+  "phone": "",
+  "address": {
+    "street": "CG Road",
+    "city": "Ahmedabad",
+    "state": "Gujarat",
+    "pincode": 380009
+  },
+  "company": {
+    "department": "Engineering"
+  }
+},
+{
+  "id": 102,
+  "name": "Arjun",
+  "email": "arjun@example.com",
+  "phone": "9876543210",
+  "address": {
+    "street": "CG Road",
+    "city": "Ahmedabad",
+    "state": "Gujarat",
+    "pincode": 380009
+  },
+  "company": {
+    "name": "TechSoft",
+    "department": "Engineering"
+  }
+}]

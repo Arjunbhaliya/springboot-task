@@ -16,8 +16,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+
+import static org.apache.commons.text.StringEscapeUtils.escapeCsv;
 
 @Service
 @RequiredArgsConstructor
@@ -57,40 +58,70 @@ public class JsonFileService {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(inputPath.toFile());
 
+        List<Map<String, String>> rows = new ArrayList<>();
 
-        Map<String, String> flatMap = new LinkedHashMap<>();
-        flattenJson("", root, flatMap);
+        if (root.isArray()) {
+            for (JsonNode objectNode : root) {
+                Map<String, String> flatMap = new LinkedHashMap<>();
+                flattenJson("", objectNode, flatMap);
+                rows.add(flatMap);
+            }
+        } else if (root.isObject()) {
+            Map<String, String> flatMap = new LinkedHashMap<>();
+            flattenJson("", root, flatMap);
+            rows.add(flatMap);
+        }
+
 
         String csvName = fileName.replace(".json", ".csv");
         Path outputPath = Paths.get("storage/output/" + csvName);
 
-//        try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
 //            writer.write(String.join(",", flatMap.keySet()));
 //            writer.newLine();
 //            writer.write(String.join(",", flatMap.values()));
+            Set<String> headerSet = new LinkedHashSet<>();
+
+            for (Map<String, String> row : rows) {
+                headerSet.addAll(row.keySet());
+            }
+            writer.write(String.join(",", headerSet));
+            writer.newLine();
+
+            for (Map<String, String> row : rows) {
+                List<String> rowValues = new ArrayList<>();
+                for (String header : headerSet) {
+                    String value = row.getOrDefault(header, "");
+                    rowValues.add(value);
+                }
+                writer.write(String.join(",", rowValues));
+                writer.newLine();
+            }
+
+//        try (BufferedWriter writer = Files.newBufferedWriter(outputPath);
+//             CSVWriter csvWriter = new CSVWriter(writer)) {
+//            String[] headers = flatMap.keySet().toArray(new String[0]);
+//            csvWriter.writeNext(headers);
+//            String[] values = flatMap.values().toArray(String[]::new);
+//            csvWriter.writeNext(values);
 //        }
 
-        try (BufferedWriter writer = Files.newBufferedWriter(outputPath);
-             CSVWriter csvWriter = new CSVWriter(writer)) {
-            String[] headers = flatMap.keySet().toArray(new String[0]);
-            csvWriter.writeNext(headers);
-            String[] values = flatMap.values().stream().map(value -> value == null ? "" : value).toArray(String[]::new);
-            csvWriter.writeNext(values);
+            JsonFile json = jsonFileRepository.findByFileName(fileName);
+            if (json != null) {
+                json.setStatus("PROCESSED");
+                jsonFileRepository.save(json);
+            }
         }
 
-        JsonFile json = jsonFileRepository.findByFileName(fileName);
-        if (json != null) {
-            json.setStatus("PROCESSED");
-            jsonFileRepository.save(json);
-        }
     }
 
     private void flattenJson(String prefix, JsonNode node, Map<String, String> result) {
-        if (node.isEmpty()) {
+        if ( node.isNull()) {
             result.put(prefix, "");
-        }
-
-        if (node.isObject()) {
+        } else if (node.isObject()) {
+            if (node.isEmpty()) {
+                result.put(prefix, "");
+            }
             node.properties().forEach(entry -> {
                 String newPrefix = prefix.isEmpty() ? entry.getKey() : prefix + "_" + entry.getKey();
                 flattenJson(newPrefix, entry.getValue(), result);

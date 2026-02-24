@@ -1,0 +1,12 @@
+{
+  "user1": {
+    "id": 1,
+    "name": "Arjun",
+    "city": "Ahmedabad"
+  },
+  "user2": {
+    "id": 2,
+    "name": "Rahul",
+    "city": "Surat"
+  }
+}
