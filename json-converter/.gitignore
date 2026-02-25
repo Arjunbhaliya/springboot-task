@@ -38,7 +38,8 @@ out/
 
 # Runtime storage
 storage/input/
-storage/output/
+storage/array-logic-1/
+
 
 # Logs
 *.log

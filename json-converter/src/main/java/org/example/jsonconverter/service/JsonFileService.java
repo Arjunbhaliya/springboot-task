@@ -17,6 +17,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static org.apache.commons.text.StringEscapeUtils.escapeCsv;
+
 @Service
 @RequiredArgsConstructor
 public class JsonFileService {
@@ -64,10 +66,24 @@ public class JsonFileService {
                 rows.add(flatMap);
             }
         } else if (root.isObject()) {
-
-            Map<String, String> flatMap = new LinkedHashMap<>();
-            flattenJson("", root, flatMap);
-            rows.add(flatMap);
+                boolean multiElement = true;
+                for(JsonNode element : root ){
+                    if(!element.isObject()){
+                        multiElement = false;
+                        break;
+                    }
+                }
+                if(multiElement){
+                root.properties().forEach(entry -> {
+                    Map<String, String> flatMap = new LinkedHashMap<>();
+                    flattenJson("", entry.getValue(), flatMap);
+                    rows.add(flatMap);
+                });
+                }else{
+                    Map<String, String> flatMap = new LinkedHashMap<>();
+                    flattenJson("", root, flatMap);
+                    rows.add(flatMap);
+                }
         }
 
         String csvName = fileName.replace(".json", ".csv");
@@ -89,7 +105,7 @@ public class JsonFileService {
                 List<String> rowValues = new ArrayList<>();
                 for (String header : headerSet) {
                     String value = row.getOrDefault(header, "");
-                    rowValues.add(value);
+                    rowValues.add(escapeCsv(value));
                 }
                 writer.write(String.join(",", rowValues));
                 writer.newLine();
