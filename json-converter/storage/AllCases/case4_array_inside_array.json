@@ -1,12 +1,12 @@
 {
-  "matrix": [
+  "userId": 1001,
+  "sessions": [
     [
-      1,
-      2
+      { "event": "click", "value": 10 },
+      { "event": "scroll", "value": 20 }
     ],
     [
-      3,
-      4
+      { "event": "purchase", "value": 250 }
     ]
   ]
 }

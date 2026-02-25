@@ -2,7 +2,6 @@ package org.example.jsonconverter.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opencsv.CSVWriter;
 import lombok.RequiredArgsConstructor;
 import org.example.jsonconverter.entity.JsonFile;
 import org.example.jsonconverter.repository.JsonFileRepository;
@@ -17,8 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-
-import static org.apache.commons.text.StringEscapeUtils.escapeCsv;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +64,9 @@ public class JsonFileService {
                 rows.add(flatMap);
             }
         } else if (root.isObject()) {
+
             Map<String, String> flatMap = new LinkedHashMap<>();
+
             flattenJson("", root, flatMap);
             rows.add(flatMap);
         }
@@ -116,7 +115,7 @@ public class JsonFileService {
     }
 
     private void flattenJson(String prefix, JsonNode node, Map<String, String> result) {
-        if ( node.isNull()) {
+        if (node.isNull()) {
             result.put(prefix, "");
         } else if (node.isObject()) {
             if (node.isEmpty()) {
@@ -129,16 +128,19 @@ public class JsonFileService {
         } else if (node.isArray()) {
             if (node.isEmpty()) {
                 result.put(prefix, "");
+            } else {
+                JsonNode element = node.get(0);
+                StringBuilder val = new StringBuilder();
+                if (element.isObject() || element.isArray()) {
+                    flattenJson(prefix, element, result);
+                } else {
+                    for (int i = 0; i < node.size(); i++) {
+                        if (i > 0) val.append("|");
+                        val.append(node.get(i).asText());
+                        result.put(prefix, val.toString());
+                    }
+                }
             }
-            for (int i = 0; i < node.size(); i++) {
-                flattenJson(prefix + "[" + i + "]", node.get(i), result);
-            }
-//            StringBuilder val = new StringBuilder();
-//            for (int i = 0; i < node.size(); i++) {
-//                if (i > 0) val.append(",");
-//                val.append(node.get(i).asText());
-//            }
-//            result.put(prefix,val.toString());
         } else {
 
             result.put(prefix, node.asText());
