@@ -1,0 +1,12 @@
+{
+  "userId": 1001,
+  "sessions": [
+    [
+      ["practice","Yoga"],
+      ["Running","Morning"]
+    ],
+    [
+      ["training"]
+    ]
+  ]
+}

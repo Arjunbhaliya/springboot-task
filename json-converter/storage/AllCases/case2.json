@@ -5,6 +5,10 @@
     {
       "product": "Laptop",
       "price": 75000
+    },
+    {
+      "product": "Phone",
+      "price": 35000
     }
   ]
 }

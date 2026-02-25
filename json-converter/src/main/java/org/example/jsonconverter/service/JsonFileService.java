@@ -66,11 +66,9 @@ public class JsonFileService {
         } else if (root.isObject()) {
 
             Map<String, String> flatMap = new LinkedHashMap<>();
-
             flattenJson("", root, flatMap);
             rows.add(flatMap);
         }
-
 
         String csvName = fileName.replace(".json", ".csv");
         Path outputPath = Paths.get("storage/output/" + csvName);
@@ -111,7 +109,6 @@ public class JsonFileService {
                 jsonFileRepository.save(json);
             }
         }
-
     }
 
     private void flattenJson(String prefix, JsonNode node, Map<String, String> result) {
@@ -129,20 +126,29 @@ public class JsonFileService {
             if (node.isEmpty()) {
                 result.put(prefix, "");
             } else {
-                JsonNode element = node.get(0);
-                StringBuilder val = new StringBuilder();
-                if (element.isObject() || element.isArray()) {
-                    flattenJson(prefix, element, result);
+                boolean nonPrimitive = false;
+                for (JsonNode element : node) {
+                    if (element.isObject() || element.isArray()) {
+                        nonPrimitive = true;
+                        break;
+                    }
+                }
+                if (nonPrimitive) {
+                    for (int i = 0; i < node.size(); i++) {
+                        JsonNode element = node.get(i);
+                        String newPrefix = prefix + "_" + (i + 1);
+                        flattenJson(newPrefix, element, result);
+                    }
                 } else {
+                    StringBuilder val = new StringBuilder();
                     for (int i = 0; i < node.size(); i++) {
                         if (i > 0) val.append("|");
                         val.append(node.get(i).asText());
-                        result.put(prefix, val.toString());
                     }
+                    result.put(prefix, val.toString());
                 }
             }
         } else {
-
             result.put(prefix, node.asText());
         }
     }
