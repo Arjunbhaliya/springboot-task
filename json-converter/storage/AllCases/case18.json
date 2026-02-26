@@ -1,0 +1,21 @@
+{
+ "orderId": 101,
+ "customer": {
+  "id": 501,
+  "name": "Arjun",
+  "address": {
+   "city": "Ahmedabad",
+   "state": "Gujarat"
+  }
+ },
+ "items": [
+  {
+   "product": "Laptop",
+   "price": 75000
+  },
+  {
+   "product": "Phone",
+   "price": 35000
+  }
+ ]
+}
