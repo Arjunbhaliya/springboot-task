@@ -66,24 +66,24 @@ public class JsonFileService {
                 rows.add(flatMap);
             }
         } else if (root.isObject()) {
-                boolean multiElement = true;
-                for(JsonNode element : root ){
-                    if(!element.isObject()){
-                        multiElement = false;
-                        break;
-                    }
+            boolean multiElement = true;
+            for (JsonNode element : root) {
+                if (!element.isObject()) {
+                    multiElement = false;
+                    break;
                 }
-                if(multiElement){
+            }
+            if (multiElement) {
                 root.properties().forEach(entry -> {
                     Map<String, String> flatMap = new LinkedHashMap<>();
                     flattenJson("", entry.getValue(), flatMap);
                     rows.add(flatMap);
                 });
-                }else{
-                    Map<String, String> flatMap = new LinkedHashMap<>();
-                    flattenJson("", root, flatMap);
-                    rows.add(flatMap);
-                }
+            } else {
+                Map<String, String> flatMap = new LinkedHashMap<>();
+                flattenJson("", root, flatMap);
+                rows.add(flatMap);
+            }
         }
 
         String csvName = fileName.replace(".json", ".csv");
@@ -152,7 +152,7 @@ public class JsonFileService {
                 if (nonPrimitive) {
                     for (int i = 0; i < node.size(); i++) {
                         JsonNode element = node.get(i);
-                        String newPrefix = prefix + "_" + (i + 1);
+                        String newPrefix = prefix + ".";
                         flattenJson(newPrefix, element, result);
                     }
                 } else {
