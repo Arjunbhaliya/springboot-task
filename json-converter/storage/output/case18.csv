@@ -1,0 +1,2 @@
+orderId,customer_id,customer_name,customer_address_city,customer_address_state,items_1_product,items_1_price,items_2_product,items_2_price
+101,501,Arjun,Ahmedabad,Gujarat,Laptop,75000,Phone,35000
