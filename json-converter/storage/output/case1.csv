@@ -1,2 +1,2 @@
-id,name,address_street,address_city,address_pincode
+id,name,address.street,address.city,address.pincode
 1,Arjun,MG Road,Ahmedabad,380001

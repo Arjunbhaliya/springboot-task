@@ -58,41 +58,18 @@ public class JsonFileService {
         JsonNode root = mapper.readTree(inputPath.toFile());
 
         List<Map<String, String>> rows = new ArrayList<>();
+        Map<String, String> result = new LinkedHashMap<>();
 
-        if (root.isArray()) {
-            for (JsonNode objectNode : root) {
-                Map<String, String> flatMap = new LinkedHashMap<>();
-                flattenJson("", objectNode, flatMap);
-                rows.add(flatMap);
-            }
-        } else if (root.isObject()) {
-            boolean multiElement = true;
-            for (JsonNode element : root) {
-                if (!element.isObject()) {
-                    multiElement = false;
-                    break;
-                }
-            }
-            if (multiElement) {
-                root.properties().forEach(entry -> {
-                    Map<String, String> flatMap = new LinkedHashMap<>();
-                    flattenJson("", entry.getValue(), flatMap);
-                    rows.add(flatMap);
-                });
-            } else {
-                Map<String, String> flatMap = new LinkedHashMap<>();
-                flattenJson("", root, flatMap);
-                rows.add(flatMap);
-            }
+        flattenJson("", root, result, rows);
+
+        if (rows.isEmpty()) {
+            rows.add(result);
         }
 
         String csvName = fileName.replace(".json", ".csv");
         Path outputPath = Paths.get("storage/output/" + csvName);
 
         try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
-//            writer.write(String.join(",", flatMap.keySet()));
-//            writer.newLine();
-//            writer.write(String.join(",", flatMap.values()));
             Set<String> headerSet = new LinkedHashSet<>();
 
             for (Map<String, String> row : rows) {
@@ -111,14 +88,6 @@ public class JsonFileService {
                 writer.newLine();
             }
 
-//        try (BufferedWriter writer = Files.newBufferedWriter(outputPath);
-//             CSVWriter csvWriter = new CSVWriter(writer)) {
-//            String[] headers = flatMap.keySet().toArray(new String[0]);
-//            csvWriter.writeNext(headers);
-//            String[] values = flatMap.values().toArray(String[]::new);
-//            csvWriter.writeNext(values);
-//        }
-
             JsonFile json = jsonFileRepository.findByFileName(fileName);
             if (json != null) {
                 json.setStatus("PROCESSED");
@@ -127,21 +96,48 @@ public class JsonFileService {
         }
     }
 
-    private void flattenJson(String prefix, JsonNode node, Map<String, String> result) {
+    private void flattenJson(String prefix, JsonNode node, Map<String, String> result, List<Map<String, String>> rows) {
+
         if (node.isNull()) {
             result.put(prefix, "");
-        } else if (node.isObject()) {
-            if (node.isEmpty()) {
-                result.put(prefix, "");
+            return;
+        }
+        if(node.isValueNode()){
+            String newPrefix = prefix.isEmpty() ? "value" : prefix ;
+            result.put(newPrefix,node.asText());
+            return;
+        }
+        if (node.isObject()) {
+            if (node.isEmpty()){
+                String newPrefix = prefix.isEmpty() ? "value" : prefix ;
+                result.put(newPrefix, "");
+                return;
             }
-            node.properties().forEach(entry -> {
-                String newPrefix = prefix.isEmpty() ? entry.getKey() : prefix + "_" + entry.getKey();
-                flattenJson(newPrefix, entry.getValue(), result);
-            });
-        } else if (node.isArray()) {
-            if (node.isEmpty()) {
+            boolean multiElement = true;
+            for (JsonNode element : node) {
+                if (!element.isObject()) {
+                    multiElement = false;
+                    break;
+                }
+            }
+            if (multiElement && node.size() >1) {
+                node.properties().forEach(entry -> {
+                    Map<String, String> newResult = new LinkedHashMap<>(result);
+                    flattenJson(prefix, entry.getValue(), newResult, rows);
+                    rows.add(newResult);
+                });
+                return;
+            }
+                node.properties().forEach(entry -> {
+                    String newPrefix = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
+                    flattenJson(newPrefix, entry.getValue(), result, rows);
+                });
+        }
+        if (node.isArray()) {
+            if (node.isEmpty()){
                 result.put(prefix, "");
-            } else {
+                return;
+            }
                 boolean nonPrimitive = false;
                 for (JsonNode element : node) {
                     if (element.isObject() || element.isArray()) {
@@ -152,8 +148,12 @@ public class JsonFileService {
                 if (nonPrimitive) {
                     for (int i = 0; i < node.size(); i++) {
                         JsonNode element = node.get(i);
-                        String newPrefix = prefix + ".";
-                        flattenJson(newPrefix, element, result);
+                        Map<String, String> newResult = new LinkedHashMap<>(result);
+                        int sizeBefore = newResult.size();
+                        flattenJson(prefix, element, newResult, rows);
+                        if(newResult.size() > sizeBefore) {
+                            rows.add(newResult);
+                        }
                     }
                 } else {
                     StringBuilder val = new StringBuilder();
@@ -163,10 +163,9 @@ public class JsonFileService {
                     }
                     result.put(prefix, val.toString());
                 }
-            }
-        } else {
-            result.put(prefix, node.asText());
         }
+
+
     }
 
 

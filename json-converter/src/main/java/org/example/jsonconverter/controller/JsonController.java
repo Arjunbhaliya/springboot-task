@@ -18,11 +18,6 @@ public class JsonController {
 
     public final JsonFileService jsonFileService;
 
-    @GetMapping("/hello")
-    public String hello() {
-        return "hello world";
-    }
-
     @PostMapping("/upload")
     public ResponseEntity<String> upload(@RequestParam("file") MultipartFile uploadedJson) throws IOException {
         jsonFileService.upload(uploadedJson);

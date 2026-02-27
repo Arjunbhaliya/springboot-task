@@ -1,2 +1,4 @@
-userId,sessions_1_1,sessions_1_2,sessions_2_1
-1001,practice|Yoga,Running|Morning,training
+userId,sessions
+1001,practice|Yoga
+1001,Running|Morning
+1001,Training
