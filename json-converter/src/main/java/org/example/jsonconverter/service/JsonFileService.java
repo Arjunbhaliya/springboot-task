@@ -98,74 +98,81 @@ public class JsonFileService {
 
     private void flattenJson(String prefix, JsonNode node, Map<String, String> result, List<Map<String, String>> rows) {
 
-        if (node.isNull()) {
+        switch (node.getNodeType()) {
+
+            case NULL -> result.put(prefix, "");
+
+            case STRING, NUMBER, BOOLEAN -> result.put(prefix, node.asText());
+
+            case OBJECT -> handleObject(prefix, node, result, rows);
+
+            case ARRAY -> handleArray(prefix, node, result, rows);
+        }
+    }
+
+    private void handleArray(String prefix, JsonNode node, Map<String, String> result, List<Map<String, String>> rows) {
+
+        if (node.isEmpty()) {
             result.put(prefix, "");
             return;
         }
-        if(node.isValueNode()){
-            String newPrefix = prefix.isEmpty() ? "value" : prefix ;
-            result.put(newPrefix,node.asText());
+
+        boolean nonPrimitive = false;
+        for (JsonNode element : node) {
+            if (element.isObject() || element.isArray()) {
+                nonPrimitive = true;
+                break;
+            }
+        }
+
+        if (nonPrimitive) {
+            for (int i = 0; i < node.size(); i++) {
+                JsonNode element = node.get(i);
+                Map<String, String> newResult = new LinkedHashMap<>(result);
+                int sizeBefore = newResult.size();
+                flattenJson(prefix, element, newResult, rows);
+                if (newResult.size() > sizeBefore) {
+                    rows.add(newResult);
+                }
+            }
             return;
         }
-        if (node.isObject()) {
-            if (node.isEmpty()){
-                String newPrefix = prefix.isEmpty() ? "value" : prefix ;
-                result.put(newPrefix, "");
-                return;
+            StringBuilder val = new StringBuilder();
+            for (int i = 0; i < node.size(); i++) {
+                if (i > 0) val.append("|");
+                val.append(node.get(i).asText());
             }
-            boolean multiElement = true;
-            for (JsonNode element : node) {
-                if (!element.isObject()) {
-                    multiElement = false;
-                    break;
-                }
-            }
-            if (multiElement && node.size() >1) {
-                node.properties().forEach(entry -> {
-                    Map<String, String> newResult = new LinkedHashMap<>(result);
-                    flattenJson(prefix, entry.getValue(), newResult, rows);
-                    rows.add(newResult);
-                });
-                return;
-            }
-                node.properties().forEach(entry -> {
-                    String newPrefix = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
-                    flattenJson(newPrefix, entry.getValue(), result, rows);
-                });
-        }
-        if (node.isArray()) {
-            if (node.isEmpty()){
-                result.put(prefix, "");
-                return;
-            }
-                boolean nonPrimitive = false;
-                for (JsonNode element : node) {
-                    if (element.isObject() || element.isArray()) {
-                        nonPrimitive = true;
-                        break;
-                    }
-                }
-                if (nonPrimitive) {
-                    for (int i = 0; i < node.size(); i++) {
-                        JsonNode element = node.get(i);
-                        Map<String, String> newResult = new LinkedHashMap<>(result);
-                        int sizeBefore = newResult.size();
-                        flattenJson(prefix, element, newResult, rows);
-                        if(newResult.size() > sizeBefore) {
-                            rows.add(newResult);
-                        }
-                    }
-                } else {
-                    StringBuilder val = new StringBuilder();
-                    for (int i = 0; i < node.size(); i++) {
-                        if (i > 0) val.append("|");
-                        val.append(node.get(i).asText());
-                    }
-                    result.put(prefix, val.toString());
-                }
-        }
+            result.put(prefix, val.toString());
+
+    }
 
 
+    private void handleObject(String prefix, JsonNode node, Map<String, String> result, List<Map<String, String>> rows) {
+        if (node.isEmpty()) {
+            result.put(prefix, "");
+            return;
+        }
+
+        boolean multiElement = true;
+        for (JsonNode element : node) {
+            if (!element.isObject()) {
+                multiElement = false;
+                break;
+            }
+        }
+
+        if (multiElement && node.size() > 1) {
+            node.properties().forEach(entry -> {
+                Map<String, String> newResult = new LinkedHashMap<>(result);
+                flattenJson(prefix, entry.getValue(), newResult, rows);
+                rows.add(newResult);
+            });
+            return;
+        }
+        node.properties().forEach(entry -> {
+            String newPrefix = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
+            flattenJson(newPrefix, entry.getValue(), result, rows);
+        });
     }
 
 
