@@ -5,7 +5,6 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
@@ -16,10 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class ExcelProjectApplicationTests {
-    public static final String LARGE_FONT_SIZE = "LARGE_FONT_SIZE.xlsx";
 
-    @Autowired
-    MyService myService;
+    public  final MyService myService;
+    ExcelProjectApplicationTests(MyService myService) {
+        this.myService = myService;
+    }
 
     @Test
     void simpleExcel() throws IOException, InvalidFormatException {
@@ -105,7 +105,7 @@ class ExcelProjectApplicationTests {
         Workbook workbook = new XSSFWorkbook(new File("output-file/excel-with-font-color-styled-data.xlsx"));
         Sheet sheet = workbook.getSheet("Products");
 
-        Cell cell = sheet.getRow(1).getCell(2); // price cell
+        Cell cell = sheet.getRow(1).getCell(2);
 
         assertNotNull(cell.getCellStyle());
 

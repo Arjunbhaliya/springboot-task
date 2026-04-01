@@ -19,10 +19,9 @@ public class ExcelUtil {
     public static void saveFile(Workbook workbook, String path) {
         try (FileOutputStream fileOut = new FileOutputStream(path)) {
             workbook.write(fileOut);
-            workbook.close();
             System.out.println("Excel file created successfully!");
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

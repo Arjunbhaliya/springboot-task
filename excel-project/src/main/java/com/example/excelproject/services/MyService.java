@@ -4,16 +4,10 @@ package com.example.excelproject.services;
 import com.example.excelproject.modal.Product;
 import com.example.excelproject.util.ExcelUtil;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.AreaReference;
 import org.apache.poi.xssf.usermodel.*;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTable;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTableColumn;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTableColumns;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTableStyleInfo;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -33,7 +27,7 @@ public class MyService {
             ExcelUtil.saveFile(workbook, "output-file/simple.xlsx");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -68,7 +62,7 @@ public class MyService {
             ExcelUtil.saveFile(workbook, "output-file/excel-with-multi-sheet.xlsx");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
     }
@@ -91,7 +85,7 @@ public class MyService {
             ExcelUtil.saveFile(workbook, "output-file/excel-with-table.xlsx");
 
         } catch (Exception e) {
-            System.out.println(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -129,7 +123,7 @@ public class MyService {
             ExcelUtil.saveFile(workbook, "output-file/excel-with-" + fileName + ".xlsx");
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
@@ -193,7 +187,7 @@ public class MyService {
 
             ExcelUtil.saveFile(workbook, "output-file/excel-with-font-color-styled-data.xlsx");
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
     }
@@ -296,8 +290,8 @@ public class MyService {
 
             ExcelUtil.saveFile(workbook, "output-file/excel-with-formula-table.xlsx");
 
-        } catch (Exception e) {
-            System.out.println(e);
+        }catch(Exception e){
+            throw new RuntimeException(e);
         }
     }
 
